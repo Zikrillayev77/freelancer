@@ -1,0 +1,36 @@
+# 1. НАСТРОЙКИ СБОРКИ (BUILD SETTINGS)
+[build]
+  command = "npm run build"    # Команда для сборки вашего проекта
+  publish = "dist"             # Папка с готовыми файлами для загрузки на CDN
+  base = ""                    # (Опционально) Директория, где запускается сборка
+
+# 2. НАСТРОЙКИ ДЛЯ SERVERLESS-ФУНКЦИЙ (NETLIFY FUNCTIONS)
+[functions]
+  directory = "netlify/functions" # Где лежат ваши функции
+  node_bundler = "esbuild"        # Сборщик для Node.js функций
+
+# 3. ДЕПЛОЙ-КОНТЕКСТЫ (Например, особые настройки для ветки production)
+[context.production]
+  command = "npm run build:prod"
+  [context.production.environment]
+    NODE_ENV = "production"
+    API_URL = "https://production.com"
+
+# 4. РЕДИРЕКТЫ И КЕШИРОВАНИЕ (REDIRECTS & REWRITES)
+[[redirects]]
+  from = "/old-path"
+  to = "/new-path"
+  status = 301
+
+# Пример для SPA (React, Vue, Astro и др.), чтобы работал роутинг
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# 5. КАСТОМНЫЕ HTTP-ЗАГОЛОВКИ (HEADERS)
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
