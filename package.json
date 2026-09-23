@@ -1,0 +1,9 @@
+{
+  "name": "workk-uz-root",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix demoday-fixed run dev",
+    "build": "npm --prefix demoday-fixed run build",
+    "preview": "npm --prefix demoday-fixed run preview"
+  }
+}

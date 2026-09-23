@@ -1,13 +1,18 @@
-import React from "react";
-import { Star } from "lucide-react";
+import React, { memo } from "react";
+import { Star, MessageCircle } from "lucide-react";
 
-const Freelancercard = ({ freelancer }) => {
+// ✅ React.memo — props o'zgarmaganda qayta render qilmaydi
+const Freelancercard = memo(({ freelancer, onContact }) => {
   return (
-    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-emerald-500/50 transition flex flex-col items-center text-center">
-      <div
-        className={`w-16 h-16 rounded-full ${freelancer.color} flex items-center justify-center text-white font-bold text-lg mb-4`}
-      >
-        {freelancer.initials}
+    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-emerald-500/50 transition flex flex-col items-center text-center group">
+      <div className="relative mb-4">
+        <div
+          className={`w-16 h-16 rounded-full ${freelancer.color} flex items-center justify-center text-white font-bold text-lg`}
+        >
+          {freelancer.initials}
+        </div>
+        {/* Online indikator */}
+        <span className="absolute bottom-0.5 right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full" />
       </div>
 
       <h3 className="font-bold text-slate-900 dark:text-white text-sm mb-1">
@@ -40,12 +45,19 @@ const Freelancercard = ({ freelancer }) => {
         <span className="text-emerald-600 dark:text-emerald-400 font-bold text-sm">
           {freelancer.hourlyRate}
         </span>
-        <button className="text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 px-3 py-1.5 rounded-xl hover:bg-emerald-500 hover:text-white transition">
-          Profil
+        {/* ✅ Xabar yuborish tugmasi */}
+        <button
+          onClick={() => onContact && onContact(freelancer)}
+          className="flex items-center gap-1 text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 px-3 py-1.5 rounded-xl hover:bg-emerald-500 hover:text-white transition cursor-pointer"
+        >
+          <MessageCircle className="w-3.5 h-3.5" />
+          Bog'lanish
         </button>
       </div>
     </div>
   );
-};
+});
+
+Freelancercard.displayName = "Freelancercard";
 
 export default Freelancercard;

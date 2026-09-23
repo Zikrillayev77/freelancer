@@ -4,11 +4,14 @@ import Navbar from "./Components/Navbar";
 import Footer from "./Components/Footer";
 import Jobmodal from "./Components/Jobmodal";
 import Rolemodal from "./Components/Rolemodal";
+import BackToTop from "./Components/BackToTop";
 import Home from "./Pages/Home";
 import Jobs from "./Pages/Jobs";
 import Jobdetail from "./Pages/Jobdetail";
 import MyListings from "./Pages/MyListings";
 import Stats from "./Pages/Stats";
+import SavedJobs from "./Pages/SavedJobs";
+import Profile from "./Pages/Profile";
 import Terms from "./Pages/Terms";
 import Privacy from "./Pages/Privacy";
 import Notfound from "./Pages/Notfound";
@@ -20,14 +23,22 @@ function App() {
   const role = useStore((state) => state.role);
 
   useEffect(() => {
-    const dismissed = sessionStorage.getItem("roleModalDismissed");
-    if (!role && !dismissed) {
-      setIsRoleModalOpen(true);
+    try {
+      const dismissed = sessionStorage.getItem("roleModalDismissed");
+      if (!role && !dismissed) {
+        setIsRoleModalOpen(true);
+      }
+    } catch {
+      // Storage xatoliklariga qarshi
     }
   }, [role]);
 
   const closeRoleModal = () => {
-    sessionStorage.setItem("roleModalDismissed", "1");
+    try {
+      sessionStorage.setItem("roleModalDismissed", "1");
+    } catch {
+      // Storage xatoliklariga qarshi
+    }
     setIsRoleModalOpen(false);
   };
 
@@ -43,6 +54,8 @@ function App() {
             path="/my-jobs"
             element={<MyListings onPostJob={() => setIsJobModalOpen(true)} />}
           />
+          <Route path="/saved" element={<SavedJobs />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="/stats" element={<Stats />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
@@ -50,6 +63,9 @@ function App() {
         </Routes>
       </main>
       <Footer />
+
+      {/* ✅ Yuqoriga qaytish tugmasi */}
+      <BackToTop />
 
       <Jobmodal
         isOpen={isJobModalOpen}

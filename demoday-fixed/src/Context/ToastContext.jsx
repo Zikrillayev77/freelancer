@@ -2,27 +2,50 @@ import React, {
   createContext,
   useCallback,
   useContext,
+  useEffect,
+  useRef,
   useState,
 } from "react";
 import { createPortal } from "react-dom";
 import { CheckCircle2, XCircle, Info, X } from "lucide-react";
 
-const ToastContext = createContext();
+const ToastContext = createContext(null);
 
 let idCounter = 0;
 
 export const ToastProvider = ({ children }) => {
   const [toasts, setToasts] = useState([]);
+  // ✅ Map orqali barcha taymerlarni saqlash — to'g'ri cleanup uchun
+  const timersRef = useRef(new Map());
+
+  // Component unmount bo'lganda barcha taymerlarni tozalash
+  useEffect(() => {
+    const timers = timersRef.current;
+    return () => {
+      timers.forEach((timerId) => clearTimeout(timerId));
+      timers.clear();
+    };
+  }, []);
 
   const removeToast = useCallback((id) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
+    // ✅ Toast o'chirilganda taymerini ham tozalaymiz
+    const timers = timersRef.current;
+    if (timers.has(id)) {
+      clearTimeout(timers.get(id));
+      timers.delete(id);
+    }
   }, []);
 
   const showToast = useCallback(
     (message, type = "success", duration = 3500) => {
       const id = ++idCounter;
       setToasts((prev) => [...prev, { id, message, type }]);
-      setTimeout(() => removeToast(id), duration);
+
+      // ✅ Taymer ID'sini Map'da saqlaymiz
+      const timerId = setTimeout(() => removeToast(id), duration);
+      timersRef.current.set(id, timerId);
+
       return id;
     },
     [removeToast],
@@ -49,6 +72,7 @@ export const ToastProvider = ({ children }) => {
             <div
               key={toast.id}
               role="status"
+              aria-live="polite"
               className={`animate-toast-in flex items-start gap-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 border-l-4 ${
                 borderMap[toast.type]
               } rounded-xl shadow-lg p-4 text-sm text-slate-700 dark:text-slate-200`}
@@ -71,4 +95,10 @@ export const ToastProvider = ({ children }) => {
   );
 };
 
-export const useToast = () => useContext(ToastContext);
+export const useToast = () => {
+  const ctx = useContext(ToastContext);
+  if (ctx === null) {
+    throw new Error("useToast() faqat <ToastProvider> ichida ishlatilishi mumkin!");
+  }
+  return ctx;
+};

@@ -57,7 +57,7 @@ const Jobdetail = () => {
     ...storeJob,
     postedDate: storeJob.postedDate || "Yaqinda",
     client: {
-      name: storeJob.client,
+      name: storeJob.client || "Buyurtmachi",
       rating: storeJob.rating || 4.8,
       completedJobs: storeJob.completedJobs || 0,
       verified: true,
@@ -164,8 +164,11 @@ const Jobdetail = () => {
                   <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
                     Taklif narxingiz ($)
                   </label>
+                  {/* ✅ min="0" — manfiy raqam kiritilmasligi uchun, step="1" */}
                   <input
                     type="number"
+                    min="0"
+                    step="1"
                     value={bidPrice}
                     onChange={(e) => setBidPrice(e.target.value)}
                     placeholder="Masalan: 400"
@@ -206,7 +209,7 @@ const Jobdetail = () => {
             </h3>
             <div className="flex items-center gap-3 mb-4">
               <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-950 flex items-center justify-center text-emerald-600 font-bold text-lg">
-                {job.client.name.charAt(0)}
+                {(job.client?.name || "B").charAt(0)}
               </div>
               <div>
                 <div className="flex items-center gap-1.5">

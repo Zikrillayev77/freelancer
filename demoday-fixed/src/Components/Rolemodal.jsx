@@ -1,13 +1,23 @@
-import React from "react";
+import React, { useEffect, useCallback } from "react";
 import { UserCheck, Briefcase, X } from "lucide-react";
 import { useStore } from "../Store/useStore";
 import { useTheme } from "../Context/ThemeContext";
 import { useToast } from "../Context/ToastContext";
 
 const Rolemodal = ({ isOpen, onClose }) => {
-  const { setRole } = useStore();
+  const setRole = useStore((state) => state.setRole);
   const { lang } = useTheme();
   const { showToast } = useToast();
+
+  // ✅ Esc bilan yopish
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKeyDown = (e) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -36,8 +46,18 @@ const Rolemodal = ({ isOpen, onClose }) => {
     onClose();
   };
 
+  // ✅ Backdrop'ga bosilganda yopish
+  const handleBackdropClick = (e) => {
+    if (e.target === e.currentTarget) onClose();
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 backdrop-blur-sm p-4">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 backdrop-blur-sm p-4"
+      onClick={handleBackdropClick}
+      aria-modal="true"
+      role="dialog"
+    >
       <div className="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl text-center">
         <button
           onClick={onClose}

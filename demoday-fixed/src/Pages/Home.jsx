@@ -7,10 +7,13 @@ import { useFakeLoading } from "../utils/useFakeLoading";
 import { topFreelancers } from "../data/fakeApi";
 import Freelancercard from "../Components/Freelancercard";
 import { FreelancerCardSkeleton } from "../Components/Skeleton";
+import ContactModal from "../Components/ContactModal";
+import FaqSection from "../Components/FaqSection";
 
 const Home = ({ onPostJob }) => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
+  const [contactFreelancer, setContactFreelancer] = useState(null);
   const { lang } = useTheme();
   const t = translations[lang];
   const isLoadingFreelancers = useFakeLoading([], 600);
@@ -96,6 +99,7 @@ const Home = ({ onPostJob }) => {
         </Link>
       </div>
 
+      {/* Tanlangan frilanserlar */}
       <div className="w-full mt-20 text-left">
         <div className="flex items-center justify-between mb-8">
           <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
@@ -107,13 +111,14 @@ const Home = ({ onPostJob }) => {
           </h2>
           <Link
             to="/jobs"
-            className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline whitespace-nowrap"
+            className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline whitespace-nowrap flex items-center gap-1"
           >
             {lang === "UZ"
-              ? "Barchasini ko'rish"
+              ? "Barcha loyihalarni ko'rish"
               : lang === "RU"
-                ? "Смотреть все"
-                : "View all"}
+                ? "Смотреть все проекты"
+                : "View all projects"}
+            <ArrowRight className="w-3 h-3" />
           </Link>
         </div>
 
@@ -123,10 +128,24 @@ const Home = ({ onPostJob }) => {
                 <FreelancerCardSkeleton key={i} />
               ))
             : topFreelancers.map((freelancer) => (
-                <Freelancercard key={freelancer.id} freelancer={freelancer} />
+                <Freelancercard
+                  key={freelancer.id}
+                  freelancer={freelancer}
+                  onContact={(f) => setContactFreelancer(f)}
+                />
               ))}
         </div>
       </div>
+
+      {/* FAQ bo'limi */}
+      <FaqSection />
+
+      {/* Bog'lanish modali */}
+      <ContactModal
+        freelancer={contactFreelancer}
+        isOpen={Boolean(contactFreelancer)}
+        onClose={() => setContactFreelancer(null)}
+      />
     </div>
   );
 };

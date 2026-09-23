@@ -32,8 +32,8 @@ export const translations = {
       "SEO va targ'ibot",
       "Ijtimoiy tarmoqlar",
       "Matn va tarjimalar",
-      "Biznes va rivojlanish"
-    ]
+      "Biznes va rivojlanish",
+    ],
   },
   RU: {
     projects: "Проекты",
@@ -68,8 +68,8 @@ export const translations = {
       "SEO и продвижение",
       "Социальные сети",
       "Тексты и переводы",
-      "Бизнес и развитие"
-    ]
+      "Бизнес и развитие",
+    ],
   },
   EN: {
     projects: "Projects",
@@ -104,7 +104,19 @@ export const translations = {
       "SEO & Promotion",
       "Social Media",
       "Writing & Translation",
-      "Business & Consulting"
-    ]
-  }
+      "Business & Consulting",
+    ],
+  },
+};
+
+// Kichik harf bilan kelsa ham crash bo'lmasligi uchun aliaslar
+translations.uz = translations.UZ;
+translations.ru = translations.RU;
+translations.en = translations.EN;
+
+// Xavfsiz tarjima oluvchi funksiya
+export const getTranslation = (lang) => {
+  if (!lang) return translations.UZ;
+  const key = String(lang).toUpperCase();
+  return translations[key] || translations.UZ;
 };

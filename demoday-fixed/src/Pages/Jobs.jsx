@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Search, Briefcase } from "lucide-react";
+import { Search, Briefcase, ArrowUpDown } from "lucide-react";
 import { translations } from "../utils/lang";
 import { useTheme } from "../Context/ThemeContext";
 import { useStore } from "../Store/useStore";
 import { useFakeLoading } from "../utils/useFakeLoading";
+import useDebounce from "../utils/useDebounce";
 import Jobcard from "../Components/Jobcard";
 import { JobCardSkeleton } from "../Components/Skeleton";
 
@@ -15,6 +16,10 @@ const Jobs = () => {
 
   const [search, setSearch] = useState(query);
   const [selectedCat, setSelectedCat] = useState(catQuery);
+  const [sortBy, setSortBy] = useState("newest");
+
+  // ✅ 350ms debounce — har keystroke'da filtrlash ishlamaydi
+  const debouncedSearch = useDebounce(search, 350);
 
   useEffect(() => {
     setSearch(query);
@@ -23,41 +28,83 @@ const Jobs = () => {
 
   const { lang } = useTheme();
   const t = translations[lang];
-  const jobs = useStore((state) => state.jobs);
-  const isLoading = useFakeLoading([search, selectedCat], 450);
+  const jobs = useStore((state) => state.jobs) || [];
+  const isLoading = useFakeLoading([debouncedSearch, selectedCat, sortBy], 450);
 
   const categories = t.catList;
 
-  const filteredJobs = jobs.filter((job) => {
-    const needle = search.toLowerCase();
-    const matchesSearch =
-      needle === "" ||
-      job.title.toLowerCase().includes(needle) ||
-      (job.description || "").toLowerCase().includes(needle) ||
-      job.category.toLowerCase().includes(needle);
-    const matchesCat = selectedCat === "" || job.category === selectedCat;
-    return matchesSearch && matchesCat;
-  });
+  // Byudjetdan raqamni ajratib olish yordamchisi
+  const parseBudgetNum = (val) => {
+    if (!val) return 0;
+    const num = String(val).replace(/[^0-9]/g, "");
+    return parseInt(num, 10) || 0;
+  };
+
+  // ✅ useMemo — debouncedSearch, selectedCat va sortBy o'zgarganda hisoblaydi
+  const filteredAndSortedJobs = useMemo(() => {
+    const needle = debouncedSearch.toLowerCase();
+    const result = jobs.filter((job) => {
+      const matchesSearch =
+        needle === "" ||
+        (job.title || "").toLowerCase().includes(needle) ||
+        (job.description || "").toLowerCase().includes(needle) ||
+        (job.category || "").toLowerCase().includes(needle);
+      const matchesCat = selectedCat === "" || job.category === selectedCat;
+      return matchesSearch && matchesCat;
+    });
+
+    if (sortBy === "price-desc") {
+      result.sort((a, b) => parseBudgetNum(b.budget) - parseBudgetNum(a.budget));
+    } else if (sortBy === "price-asc") {
+      result.sort((a, b) => parseBudgetNum(a.budget) - parseBudgetNum(b.budget));
+    }
+
+    return result;
+  }, [jobs, debouncedSearch, selectedCat, sortBy]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto px-4 py-8 min-h-[75vh]">
+      {/* Header & Search */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
-        <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-          {t.allProjects}
-        </h1>
+        <div>
+          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+            {t.allProjects}
+          </h1>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            Jami {filteredAndSortedJobs.length} ta loyiha mavjud
+          </p>
+        </div>
 
-        <div className="relative w-full md:w-80">
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder={t.searchInJobs}
-            className="w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 pl-10 pr-4 py-2.5 rounded-xl text-xs border border-slate-200 dark:border-slate-800 focus:border-emerald-500 outline-none transition"
-          />
-          <Search className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
+        <div className="flex items-center gap-3 w-full md:w-auto">
+          {/* Qidiruv */}
+          <div className="relative flex-1 md:w-72">
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder={t.searchInJobs}
+              className="w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 pl-10 pr-4 py-2.5 rounded-xl text-xs border border-slate-200 dark:border-slate-800 focus:border-emerald-500 outline-none transition"
+            />
+            <Search className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
+          </div>
+
+          {/* Saralash (Sort) */}
+          <div className="relative shrink-0">
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="appearance-none bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 pl-8 pr-8 py-2.5 rounded-xl text-xs border border-slate-200 dark:border-slate-800 focus:border-emerald-500 outline-none font-medium cursor-pointer"
+            >
+              <option value="newest">Yangi e'lonlar</option>
+              <option value="price-desc">Byudjet: yuqori</option>
+              <option value="price-asc">Byudjet: arzon</option>
+            </select>
+            <ArrowUpDown className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-3 pointer-events-none" />
+          </div>
         </div>
       </div>
 
+      {/* Kategoriya filtri */}
       <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-8 scrollbar-none">
         <button
           onClick={() => setSelectedCat("")}
@@ -85,15 +132,16 @@ const Jobs = () => {
         ))}
       </div>
 
+      {/* Ro'yxat */}
       {isLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
           {Array.from({ length: 6 }).map((_, i) => (
             <JobCardSkeleton key={i} />
           ))}
         </div>
-      ) : filteredJobs.length > 0 ? (
+      ) : filteredAndSortedJobs.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-          {filteredJobs.map((job) => (
+          {filteredAndSortedJobs.map((job) => (
             <Jobcard key={job.id} job={job} />
           ))}
         </div>
